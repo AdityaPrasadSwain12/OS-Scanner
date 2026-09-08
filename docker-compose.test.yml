@@ -1,0 +1,14 @@
+services:
+  tests:
+    build:
+      context: .
+      target: test
+    environment:
+      SCANNER_DATABASE_PATH: /tmp/scanner-test.db
+      COVERAGE_FILE: /tmp/.coverage
+      PYTEST_ADDOPTS: -p no:cacheprovider
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    security_opt:
+      - no-new-privileges:true

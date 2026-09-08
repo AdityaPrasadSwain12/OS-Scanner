@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "scanner_version": "1.1.0",
+  "scan_id": "{{SCAN_ID}}",
+  "endpoint_id": "{{ENDPOINT_ID}}",
+  "scan_type": "FULL",
+  "timestamp": "2026-09-02T10:00:05Z",
+  "started_at": "2026-09-02T10:00:00Z",
+  "finished_at": "2026-09-02T10:00:05Z",
+  "status": "SUCCESS",
+  "policy_id": "enterprise-default",
+  "policy_version": "1.0.0",
+  "policy_checksum": null,
+  "authorization_scope_id": "{{SCOPE_ID}}",
+  "software": [
+    {
+      "name": "requests",
+      "version": "2.32.5",
+      "publisher": "Python Packaging Authority",
+      "package_manager": "pypi",
+      "source": "authorized-smoke-fixture"
+    }
+  ],
+  "findings": [],
+  "collectors": {
+    "native": {
+      "schema_version": "1.0",
+      "scanner_version": "1.1.0",
+      "name": "native",
+      "status": "SUCCESS",
+      "started_at": "2026-09-02T10:00:00Z",
+      "finished_at": "2026-09-02T10:00:05Z",
+      "duration_seconds": 5.0,
+      "records_collected": 1,
+      "metadata": {"fixture": true}
+    }
+  },
+  "metadata": {"fixture": true, "authorization_note": "No live asset was scanned"}
+}
+

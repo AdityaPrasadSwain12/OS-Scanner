@@ -1,0 +1,51 @@
+#!/bin/sh
+set -eu
+
+find_free_id() {
+    candidate=350
+    while [ "$candidate" -le 499 ]; do
+        if ! dscl . -search /Users UniqueID "$candidate" >/dev/null 2>&1 && \
+           ! dscl . -search /Groups PrimaryGroupID "$candidate" >/dev/null 2>&1; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+        candidate=$((candidate + 1))
+    done
+    return 1
+}
+
+if ! dscl . -read /Groups/_endpointscanner >/dev/null 2>&1; then
+    scanner_gid=$(find_free_id) || { echo 'No system group ID is available.' >&2; exit 1; }
+    dscl . -create /Groups/_endpointscanner
+    dscl . -create /Groups/_endpointscanner PrimaryGroupID "$scanner_gid"
+    dscl . -create /Groups/_endpointscanner RealName 'Endpoint Scanner Service'
+else
+    scanner_gid=$(dscl . -read /Groups/_endpointscanner PrimaryGroupID | awk '{print $2}')
+fi
+if ! dscl . -read /Users/_endpointscanner >/dev/null 2>&1; then
+    scanner_uid=$(find_free_id) || { echo 'No system user ID is available.' >&2; exit 1; }
+    dscl . -create /Users/_endpointscanner
+    dscl . -create /Users/_endpointscanner UniqueID "$scanner_uid"
+    dscl . -create /Users/_endpointscanner PrimaryGroupID "$scanner_gid"
+    dscl . -create /Users/_endpointscanner UserShell /usr/bin/false
+    dscl . -create /Users/_endpointscanner NFSHomeDirectory /var/empty
+    dscl . -create /Users/_endpointscanner RealName 'Endpoint Scanner Service'
+    dscl . -create /Users/_endpointscanner IsHidden 1
+fi
+
+base='/Library/Application Support/EndpointScanner'
+install -d -o root -g _endpointscanner -m 0750 "$base"
+install -d -o root -g _endpointscanner -m 0750 "$base/policies"
+install -d -o _endpointscanner -g _endpointscanner -m 0700 "$base/state"
+install -d -o _endpointscanner -g _endpointscanner -m 0700 /Library/Logs/EndpointScanner
+if [ ! -f "$base/config.yaml" ]; then
+    install -o root -g _endpointscanner -m 0640 "$base/share/config.yaml.dist" "$base/config.yaml"
+fi
+if [ ! -f "$base/policies/enterprise-default.yaml" ]; then
+    install -o root -g _endpointscanner -m 0640 \
+        "$base/share/enterprise-default.yaml.dist" "$base/policies/enterprise-default.yaml"
+fi
+chown root:wheel /Library/LaunchDaemons/com.enterprise.endpoint-scanner.plist
+chmod 0644 /Library/LaunchDaemons/com.enterprise.endpoint-scanner.plist
+# Deliberately leave the Disabled launchd job unloaded. Enrollment enables it.
+exit 0

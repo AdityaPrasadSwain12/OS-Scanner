@@ -1,0 +1,81 @@
+environment: production
+data_directory: "C:/ProgramData/EndpointScanner/state"
+log_level: INFO
+
+runtime:
+  max_concurrency: 4
+  subprocess_timeout_seconds: 60
+  scan_timeout_seconds: 1800
+  max_tool_output_bytes: 10485760
+  max_inventory_records: 250000
+  max_policy_operations: 5000000
+
+retention:
+  retention_days: 90
+  report_retention_days: 30
+  succeeded_upload_retention_days: 7
+  max_completed_scans: 10000
+  max_report_files: 10000
+  maintenance_batch_size: 1000
+  max_local_storage_bytes: 5368709120
+  minimum_free_disk_bytes: 536870912
+  legal_hold_scan_ids: []
+
+policies:
+  directory: "C:/ProgramData/EndpointScanner/policies/enterprise-default.yaml"
+  cloud_sync_enabled: true
+  allow_symlinks: false
+
+cloud:
+  base_url: "https://security-platform.example.com/endpoint-control"
+  offload_vulnerability_analysis: true
+  allow_insecure_loopback_http: false
+  connect_timeout_seconds: 5
+  read_timeout_seconds: 30
+  max_response_bytes: 8388608
+  max_request_bytes: 33554432
+  max_retries: 5
+  tls_verify: true
+  ca_bundle: null
+
+discovery:
+  enabled: false
+  passive_only: true
+  authorized_domains: []
+  max_dns_concurrency: 1
+  max_dns_queries_per_second: 1
+
+scheduling:
+  enabled: false
+  startup_scan: false
+  periodic_interval_seconds: null
+  jitter_ratio: 0.10
+  scan_type: QUICK
+  timeout_seconds: 900
+  approved_sources: []
+  authorization_scope_id: managed-endpoint-scheduler
+  authorization_reference: managed-enterprise-endpoint-package
+
+tools:
+  osquery_executable: "C:/Program Files/Endpoint Scanner/tools/osquery/osqueryi.exe"
+  enabled_osquery_queries: []
+  osv_scanner_executable: null
+  depscan_executable: null
+  approved_dependency_roots: []
+  openscap_executable: null
+  approved_scap_content_roots: []
+  default_scap_content: null
+  default_scap_profile: null
+  amass_executable: null
+
+analysis:
+  enforce_administrator_allowlist: false
+  enforce_port_allowlist: false
+  maximum_administrator_accounts: 4
+  enforce_os_support_catalog: false
+  supported_os_releases: []
+  required_security_agent_names: []
+  required_security_service_names: []
+  approved_security_posture: {}
+
+# No token, endpoint credential, private key, or tenant identifier belongs here.

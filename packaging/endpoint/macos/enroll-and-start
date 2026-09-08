@@ -1,0 +1,40 @@
+#!/bin/sh
+set -eu
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo 'Run endpoint-scanner-enroll as root.' >&2
+    exit 2
+fi
+base='/Library/Application Support/EndpointScanner'
+config_file=${ENDPOINT_SCANNER_CONFIG:-$base/config.yaml}
+plist=/Library/LaunchDaemons/com.enterprise.endpoint-scanner.plist
+label=system/com.enterprise.endpoint-scanner
+if [ ! -f "$config_file" ]; then
+    echo 'Scanner configuration is missing.' >&2
+    exit 2
+fi
+if [ -z "${SCANNER_ENROLLMENT_TOKEN:-}" ]; then
+    echo 'SCANNER_ENROLLMENT_TOKEN is not set.' >&2
+    exit 2
+fi
+
+token_file=$(mktemp /var/run/endpoint-scanner-enrollment.XXXXXXXX)
+cleanup() {
+    rm -f -- "$token_file"
+    unset SCANNER_ENROLLMENT_TOKEN
+}
+trap cleanup EXIT HUP INT TERM
+printf '%s' "$SCANNER_ENROLLMENT_TOKEN" > "$token_file"
+unset SCANNER_ENROLLMENT_TOKEN
+chown _endpointscanner:_endpointscanner "$token_file"
+chmod 0600 "$token_file"
+
+env -i HOME=/var/empty PATH=/usr/bin:/bin:/usr/sbin:/sbin \
+    /usr/bin/sudo -n -u _endpointscanner \
+    "$base/libexec/enroll-worker" "$token_file" "$config_file"
+
+install -o _endpointscanner -g _endpointscanner -m 0600 /dev/null "$base/state/enrolled"
+launchctl enable "$label"
+launchctl bootstrap system "$plist"
+launchctl kickstart -k "$label"
+echo '{"status":"ENROLLED_AND_STARTED","service":"com.enterprise.endpoint-scanner"}'

@@ -1,0 +1,60 @@
+# Safe template for `endpoint-scanner deep-scan`.
+# This file intentionally does not run every external tool unchanged. Copy it to a
+# protected location, then replace only the null executable/content values and empty
+# allowlists you intend to use with absolute, administrator-controlled paths/scopes.
+
+environment: production
+
+runtime:
+  subprocess_timeout_seconds: 120
+  scan_timeout_seconds: 1800
+  max_concurrency: 4
+  max_tool_output_bytes: 20971520
+  max_inventory_records: 250000
+  max_policy_operations: 5000000
+
+policies:
+  # The packaged enterprise policy is used when directory is omitted.
+  cloud_sync_enabled: false
+  allow_symlinks: false
+
+tools:
+  # Examples for Windows use forward slashes. Linux/macOS deployments must use
+  # the corresponding absolute native paths. Leave an adapter null to disable it.
+  osquery_executable: null # Example: C:/Program Files/osquery/osqueryi.exe
+  # Empty means all scanner-owned, platform-compatible queries; arbitrary SQL is never accepted.
+  enabled_osquery_queries: []
+
+  osv_scanner_executable: null # Example: C:/SecurityTools/osv-scanner.exe
+  depscan_executable: null # Example: C:/SecurityTools/depscan.exe
+  # Required before passing --dependency-source. Use only approved project roots.
+  approved_dependency_roots: [] # Example: [C:/ApprovedProjects]
+
+  openscap_executable: null # Linux example: /usr/bin/oscap
+  approved_scap_content_roots: [] # Linux example: [/usr/share/xml/scap]
+  default_scap_content: null # Must be within an approved_scap_content_roots entry.
+  default_scap_profile: null # Exact locally approved profile identifier.
+
+  amass_executable: null # Example: C:/SecurityTools/amass.exe
+
+discovery:
+  # Set enabled true only when using --domain, and list customer-owned DNS roots below.
+  enabled: false
+  passive_only: true
+  authorized_domains: [] # Example: [example.com]
+  max_dns_concurrency: 1
+  max_dns_queries_per_second: 1
+  max_discovered_assets: 25000
+  timeout_seconds: 900
+
+privacy:
+  redact_logs: true
+  redact_command_lines: true
+  transmit_process_command_lines: false
+  collect_passwords: false
+  collect_password_hashes: false
+  collect_private_keys: false
+  collect_browser_secrets: false
+  collect_clipboard: false
+  collect_document_contents: false
+  collect_screenshots: false

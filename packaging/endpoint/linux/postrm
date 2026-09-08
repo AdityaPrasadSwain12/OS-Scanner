@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+systemctl daemon-reload >/dev/null 2>&1 || true
+# State, enrollment identity, reports, and the service account are retained even
+# on purge.  Enterprise removal policy must make evidence deletion explicit.
+exit 0

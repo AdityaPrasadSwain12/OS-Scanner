@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.example.endpoint-scanner</string>
+  <key>UserName</key>
+  <string>_endpointscanner</string>
+  <key>GroupName</key>
+  <string>_endpointscanner</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Library/Application Support/EndpointScanner/venv/bin/endpoint-scanner</string>
+    <string>agent</string>
+    <string>--config</string>
+    <string>/Library/Application Support/EndpointScanner/config.yaml</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>StandardOutPath</key>
+  <string>/Library/Logs/EndpointScanner/stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Library/Logs/EndpointScanner/stderr.log</string>
+  <key>ThrottleInterval</key>
+  <integer>15</integer>
+</dict>
+</plist>

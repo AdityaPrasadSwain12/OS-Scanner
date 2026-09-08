@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+token_file=$1
+config_file=$2
+token=$(/bin/dd if="$token_file" status=none)
+/bin/rm -f -- "$token_file"
+if [ -z "$token" ]; then
+    echo 'Enrollment token is empty.' >&2
+    exit 2
+fi
+SCANNER_ENROLLMENT_TOKEN=$token
+export SCANNER_ENROLLMENT_TOKEN
+token=
+set +e
+/opt/endpoint-scanner/bin/endpoint-scanner enroll --config "$config_file"
+status=$?
+set -e
+unset SCANNER_ENROLLMENT_TOKEN
+exit "$status"

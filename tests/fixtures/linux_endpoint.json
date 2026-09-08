@@ -1,0 +1,27 @@
+{
+  "endpoint": {
+    "endpoint_id": "endpoint-linux-001",
+    "hostname": "linux-app-01",
+    "os_family": "LINUX",
+    "asset_criticality": 1.0
+  },
+  "operating_system": {
+    "family": "LINUX",
+    "name": "Ubuntu",
+    "version": "24.04",
+    "kernel": "6.8.0",
+    "architecture": "x86_64",
+    "supported": true
+  },
+  "security": {
+    "firewall_enabled": false,
+    "disk_encryption_enabled": false,
+    "ssh_root_login_enabled": true,
+    "ssh_password_authentication_enabled": true,
+    "ssh_permit_empty_passwords": false,
+    "automatic_updates_enabled": false,
+    "pending_security_updates_count": 12,
+    "security_agent_installed": false
+  }
+}
+

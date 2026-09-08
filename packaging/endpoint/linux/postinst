@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+if ! getent group endpoint-scanner >/dev/null; then
+    addgroup --system --quiet endpoint-scanner
+fi
+if ! getent passwd endpoint-scanner >/dev/null; then
+    adduser --system --quiet --ingroup endpoint-scanner --home /var/lib/endpoint-scanner \
+        --no-create-home --shell /usr/sbin/nologin endpoint-scanner
+fi
+install -d -o root -g endpoint-scanner -m 0750 /etc/endpoint-scanner
+install -d -o root -g endpoint-scanner -m 0750 /etc/endpoint-scanner/policies
+install -d -o endpoint-scanner -g endpoint-scanner -m 0700 /var/lib/endpoint-scanner
+chown root:endpoint-scanner /etc/endpoint-scanner/config.yaml
+chmod 0640 /etc/endpoint-scanner/config.yaml
+chown root:endpoint-scanner /etc/endpoint-scanner/policies/enterprise-default.yaml
+chmod 0640 /etc/endpoint-scanner/policies/enterprise-default.yaml
+systemctl daemon-reload
+# Deliberately do not enable or start the service.  Enrollment does both.
+exit 0

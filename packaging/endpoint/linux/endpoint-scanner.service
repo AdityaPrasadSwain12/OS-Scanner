@@ -1,0 +1,35 @@
+[Unit]
+Description=Enterprise Endpoint Security Scanner
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/var/lib/endpoint-scanner/enrolled
+
+[Service]
+Type=simple
+User=endpoint-scanner
+Group=endpoint-scanner
+ExecStart=/opt/endpoint-scanner/bin/endpoint-scanner agent --config /etc/endpoint-scanner/config.yaml
+Restart=on-failure
+RestartSec=15s
+TimeoutStopSec=30s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+UMask=0077
+ReadWritePaths=/var/lib/endpoint-scanner
+
+[Install]
+WantedBy=multi-user.target

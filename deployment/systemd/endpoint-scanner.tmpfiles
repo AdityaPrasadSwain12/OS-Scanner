@@ -1,0 +1,3 @@
+d /var/lib/endpoint-scanner 0700 endpoint-scanner endpoint-scanner -
+d /var/lib/endpoint-scanner/reports 0700 endpoint-scanner endpoint-scanner -
+

@@ -1,0 +1,147 @@
+name: endpoint-scanner-cloud
+
+x-service-security: &service-security
+  init: true
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+
+x-database-environment: &database-environment
+  SCANNER_ENVIRONMENT: ${SCANNER_ENVIRONMENT:-development}
+  SCANNER_DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DATABASE:?Set POSTGRES_DATABASE}
+
+x-api-environment: &api-environment
+  <<: *database-environment
+  SCANNER_CREDENTIAL_PEPPER: ${SCANNER_CREDENTIAL_PEPPER:?Set SCANNER_CREDENTIAL_PEPPER}
+  SCANNER_BOOTSTRAP_TOKENS: '{"${CLOUD_ENROLLMENT_TOKEN:?Set CLOUD_ENROLLMENT_TOKEN}":"${CLOUD_TENANT_ID:-tenant-local}"}'
+  SCANNER_ADMIN_TOKENS: '{"${CLOUD_ADMIN_TOKEN:?Set CLOUD_ADMIN_TOKEN}":"${CLOUD_TENANT_ID:-tenant-local}"}'
+  SCANNER_RUN_MIGRATIONS: "true"
+  SCANNER_INSTALLER_ARTIFACT_ROOT: /srv/scanner/dist/endpoint
+  SCANNER_INSTALLER_MANIFEST_PATH: /srv/scanner/dist/manifest.json
+
+services:
+  postgres:
+    image: postgres:17.6-alpine@sha256:ef257d85f76e48da1c64832459b59fcaba1a4dac97bf5d7450c77753542eee94
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE:?Set POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - scanner-postgres:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    restart: unless-stopped
+    shm_size: 128mb
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 1.0
+
+  api:
+    <<: *service-security
+    build:
+      context: .
+      dockerfile: cloud/Dockerfile
+      target: api
+    environment:
+      <<: *api-environment
+      SCANNER_TRUSTED_PROXY_IPS: 127.0.0.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${CLOUD_BIND_ADDRESS:-127.0.0.1}:${CLOUD_API_PORT:-8080}:8000"
+    expose:
+      - "8000"
+    networks:
+      - frontend
+      - backend
+    volumes:
+      # Local-development artifact delivery. Production should use a signed,
+      # immutable release/object-store mount with the same API contract.
+      - ./dist:/srv/scanner/dist:ro
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 1.0
+
+  worker:
+    <<: *service-security
+    build:
+      context: .
+      dockerfile: cloud/Dockerfile
+      target: worker
+    environment:
+      <<: *database-environment
+      SCANNER_RUN_MIGRATIONS: "false"
+      SCANNER_OSV_EXECUTABLE: /usr/local/bin/osv-scanner
+      SCANNER_DEPSCAN_EXECUTABLE: /usr/local/bin/depscan
+      SCANNER_ANALYSIS_FIXTURE_MODE: ${SCANNER_ANALYSIS_FIXTURE_MODE:-false}
+      VDB_HOME: /var/cache/scanner-tools/vdb
+      XDG_CACHE_HOME: /var/cache/scanner-tools
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - backend
+      - egress
+    tmpfs:
+      - /tmp:size=1g,mode=1777
+    volumes:
+      - scanner-tool-cache:/var/cache/scanner-tools
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1 && test -x \"$${SCANNER_OSV_EXECUTABLE}\" && test -x \"$${SCANNER_DEPSCAN_EXECUTABLE}\""]
+      interval: 20s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 2.0
+    stop_grace_period: 45s
+
+  dashboard:
+    <<: *service-security
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${CLOUD_BIND_ADDRESS:-127.0.0.1}:${CLOUD_DASHBOARD_PORT:-8081}:8080"
+    networks:
+      - frontend
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    pids_limit: 128
+    mem_limit: 128m
+    cpus: 0.25
+
+networks:
+  frontend: {}
+  backend:
+    internal: true
+  egress: {}
+
+volumes:
+  scanner-postgres: {}
+  scanner-tool-cache: {}

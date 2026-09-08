@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <id>EndpointSecurityScanner</id>
+  <name>Enterprise Endpoint Security Scanner</name>
+  <description>Authorized endpoint inventory and security posture scanner.</description>
+  <executable>%BASE%\endpoint-scanner.exe</executable>
+  <arguments>agent --config "%ProgramData%\EndpointScanner\config.yaml"</arguments>
+  <workingdirectory>%BASE%</workingdirectory>
+  <startmode>Manual</startmode>
+  <logpath>%ProgramData%\EndpointScanner\logs</logpath>
+  <log mode="roll-by-size-time">
+    <sizeThreshold>10240</sizeThreshold>
+    <pattern>yyyyMMdd</pattern>
+    <autoRollAtTime>00:00:00</autoRollAtTime>
+    <zipOlderThanNumDays>7</zipOlderThanNumDays>
+  </log>
+  <onfailure action="restart" delay="15 sec"/>
+  <resetfailure>1 hour</resetfailure>
+  <stoptimeout>30 sec</stoptimeout>
+  <serviceaccount>
+    <domain>NT AUTHORITY</domain>
+    <user>LocalService</user>
+    <allowservicelogon>true</allowservicelogon>
+  </serviceaccount>
+</service>

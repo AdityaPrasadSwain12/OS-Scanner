@@ -1,0 +1,5 @@
+# Cloud control-plane runtime. Exact direct versions are reviewed and pinned for reproducible builds.
+# Regenerate and vulnerability-scan this lock as part of each release qualification.
+fastapi==0.141.1
+psycopg[binary,pool]==3.3.5
+uvicorn==0.52.4

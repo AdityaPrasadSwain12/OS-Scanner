@@ -1,0 +1,31 @@
+{
+  "endpoint": {
+    "endpoint_id": "endpoint-win-001",
+    "hostname": "WIN-ACCT-01",
+    "os_family": "WINDOWS",
+    "asset_criticality": 0.8
+  },
+  "operating_system": {
+    "family": "WINDOWS",
+    "name": "Windows 11 Enterprise",
+    "version": "23H2",
+    "build": "22631",
+    "architecture": "x86_64",
+    "supported": true
+  },
+  "security": {
+    "firewall_enabled": true,
+    "antivirus_enabled": true,
+    "antivirus_up_to_date": true,
+    "disk_encryption_enabled": true,
+    "secure_boot_enabled": true,
+    "tpm_present": true,
+    "uac_enabled": true,
+    "rdp_enabled": false,
+    "automatic_updates_enabled": true,
+    "pending_security_updates_count": 0,
+    "guest_account_enabled": false,
+    "administrator_account_count": 2
+  }
+}
+

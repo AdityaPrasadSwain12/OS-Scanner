@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=75.8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "endpoint-security-scanner"
+version = "1.1.0"
+description = "Authorized, cross-platform endpoint reconnaissance and security assessment agent"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+authors = [{ name = "Endpoint Security Scanner Engineering" }]
+dependencies = [
+    "keyring>=25.7.0,<26",
+    "pydantic>=2.10.6,<3",
+    "PyYAML>=6.0.2,<7",
+    "tldextract>=5.3.2,<6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.14.1,<2",
+    "pytest>=8.3.4,<9",
+    "pytest-cov>=6.0.0,<8",
+    "ruff>=0.9.3,<1",
+    "types-PyYAML>=6.0.12.20241230",
+]
+[project.scripts]
+endpoint-scanner = "app.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+"app" = ["py.typed"]
+"app.policies.defaults" = ["*.yaml"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers -ra"
+testpaths = ["tests"]
+markers = [
+    "integration: requires a locally installed external security tool",
+    "performance: bounded resource and duration checks",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 75
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = [".venv", ".verification-*", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S105", "S106", "S108"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+plugins = ["pydantic.mypy"]
+exclude = "(^|/)(build|dist)/"
+
+[[tool.mypy.overrides]]
+module = "yaml.*"
+ignore_missing_imports = true

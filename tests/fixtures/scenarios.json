@@ -1,0 +1,24 @@
+{
+  "scenarios": [
+    {"id": "healthy_endpoint", "platform": "WINDOWS", "overrides": {}},
+    {"id": "firewall_disabled", "platform": "LINUX", "overrides": {"security.firewall_enabled": false}},
+    {"id": "antivirus_disabled", "platform": "WINDOWS", "overrides": {"security.antivirus_enabled": false}},
+    {"id": "encryption_disabled", "platform": "LINUX", "overrides": {"security.disk_encryption_enabled": false}},
+    {"id": "outdated_os", "platform": "MACOS", "overrides": {"os.supported": false}},
+    {"id": "missing_updates", "platform": "LINUX", "overrides": {"security.pending_security_updates_count": 12}},
+    {"id": "rdp_enabled", "platform": "WINDOWS", "overrides": {"security.rdp_enabled": true}},
+    {"id": "ssh_misconfigured", "platform": "LINUX", "overrides": {"security.ssh_root_login_enabled": true}},
+    {"id": "guest_enabled", "platform": "WINDOWS", "overrides": {"security.guest_account_enabled": true}},
+    {"id": "unexpected_admin", "platform": "WINDOWS", "overrides": {"security.unexpected_administrator_accounts": ["temp-admin"]}},
+    {"id": "suspicious_service", "platform": "WINDOWS", "overrides": {"services": [{"name": "unknown-updater", "suspicious": true}]}},
+    {"id": "suspicious_startup", "platform": "MACOS", "overrides": {"persistence": [{"name": "unknown-agent", "kind": "LaunchAgent", "suspicious": true}]}},
+    {"id": "unexpected_port", "platform": "LINUX", "overrides": {"listening_ports": [{"protocol": "TCP", "address": "0.0.0.0", "port": 4444, "suspicious": true}]}},
+    {"id": "critical_vulnerability", "platform": "LINUX", "overrides": {"vulnerabilities": [{"vulnerability_id": "CVE-TEST-0001", "severity": "CRITICAL"}]}},
+    {"id": "high_vulnerability", "platform": "WINDOWS", "overrides": {"vulnerabilities": [{"vulnerability_id": "CVE-TEST-0002", "severity": "HIGH"}]}},
+    {"id": "compliance_failure", "platform": "LINUX", "overrides": {"compliance": [{"rule_id": "xccdf_test", "status": "FAIL"}]}},
+    {"id": "tool_unavailable", "platform": "MACOS", "overrides": {"collectors.osquery.status": "UNAVAILABLE"}},
+    {"id": "offline_endpoint", "platform": "WINDOWS", "overrides": {"transport.online": false}},
+    {"id": "api_failure", "platform": "LINUX", "overrides": {"transport.status_code": 503}},
+    {"id": "unauthorized_amass_target", "platform": "EXTERNAL", "overrides": {"target": "outside.invalid", "authorized_domains": ["example.test"]}}
+  ]
+}

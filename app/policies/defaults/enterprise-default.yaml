@@ -1,0 +1,571 @@
+schema_version: "1.0"
+policy_id: enterprise-default
+policy_version: 1.0.0
+description: Cross-platform enterprise endpoint security baseline.
+rules:
+  - id: WIN-FIREWALL-001
+    title: Windows host firewall is disabled
+    severity: HIGH
+    category: endpoint_security
+    description: The endpoint reports that the Windows host firewall is disabled.
+    platforms: [WINDOWS]
+    condition: {field: security.firewall_enabled, operator: equals, value: false}
+    evidence_fields: [security.firewall_enabled]
+    remediation: Enable Windows Defender Firewall for every required network profile and centrally enforce the setting.
+    exposure: 0.8
+
+  - id: LIN-FIREWALL-001
+    title: Linux host firewall is disabled
+    severity: HIGH
+    category: endpoint_security
+    description: No enabled Linux host firewall was reported.
+    platforms: [LINUX]
+    condition: {field: security.firewall_enabled, operator: equals, value: false}
+    evidence_fields: [security.firewall_enabled]
+    remediation: Enable and centrally manage an approved nftables, firewalld, or equivalent host firewall policy.
+    exposure: 0.8
+
+  - id: MAC-FIREWALL-001
+    title: macOS application firewall is disabled
+    severity: MEDIUM
+    category: endpoint_security
+    description: The macOS application firewall is disabled.
+    platforms: [MACOS]
+    condition: {field: security.firewall_enabled, operator: equals, value: false}
+    evidence_fields: [security.firewall_enabled]
+    remediation: Enable the macOS application firewall and manage it through the approved device policy.
+    exposure: 0.6
+
+  - id: WIN-ANTIVIRUS-001
+    title: Antivirus protection is disabled
+    severity: CRITICAL
+    category: endpoint_security
+    description: The Windows endpoint reports no enabled antivirus protection.
+    platforms: [WINDOWS]
+    condition: {field: security.antivirus_enabled, operator: equals, value: false}
+    evidence_fields: [security.antivirus_enabled]
+    remediation: Enable the approved antivirus or EDR product, investigate why it was disabled, and verify real-time protection.
+    exploitability: 0.8
+
+  - id: WIN-ANTIVIRUS-002
+    title: Antivirus security intelligence is outdated
+    severity: HIGH
+    category: endpoint_security
+    description: Antivirus is present but its security intelligence is not current.
+    platforms: [WINDOWS]
+    condition:
+      all:
+        - {field: security.antivirus_enabled, operator: equals, value: true}
+        - {field: security.antivirus_up_to_date, operator: equals, value: false}
+    evidence_fields: [security.antivirus_enabled, security.antivirus_up_to_date]
+    remediation: Restore antivirus update connectivity and install the latest approved security intelligence.
+    exploitability: 0.6
+
+  - id: ENDPOINT-ENCRYPTION-001
+    title: Endpoint disk encryption is disabled
+    severity: HIGH
+    category: data_protection
+    description: Full-disk encryption is not enabled on the endpoint.
+    condition: {field: security.disk_encryption_enabled, operator: equals, value: false}
+    evidence_fields: [security.disk_encryption_enabled]
+    remediation: Enable the platform-native full-disk encryption control and escrow recovery material through an approved system.
+    compliance_impact: 0.9
+
+  - id: BOOT-INTEGRITY-001
+    title: Secure Boot is disabled
+    severity: MEDIUM
+    category: boot_integrity
+    description: The endpoint reports that Secure Boot is disabled.
+    platforms: [WINDOWS, LINUX, MACOS]
+    condition: {field: security.secure_boot_enabled, operator: equals, value: false}
+    evidence_fields: [security.secure_boot_enabled]
+    remediation: Enable Secure Boot after validating operating system, firmware, and driver compatibility.
+    exploitability: 0.5
+
+  - id: WIN-TPM-001
+    title: Required TPM is not present
+    severity: MEDIUM
+    category: hardware_security
+    description: A Windows endpoint does not report a Trusted Platform Module.
+    platforms: [WINDOWS]
+    condition: {field: security.tpm_present, operator: equals, value: false}
+    evidence_fields: [security.tpm_present, security.tpm_version]
+    remediation: Enable a supported TPM in firmware or replace the endpoint when policy requires hardware-backed key protection.
+    compliance_impact: 0.6
+
+  - id: WIN-UAC-001
+    title: User Account Control is disabled
+    severity: HIGH
+    category: privilege_management
+    description: Windows User Account Control is disabled.
+    platforms: [WINDOWS]
+    condition: {field: security.uac_enabled, operator: equals, value: false}
+    evidence_fields: [security.uac_enabled]
+    remediation: Enable UAC at the enterprise-approved notification level and enforce it with managed policy.
+    exploitability: 0.7
+
+  - id: WIN-RDP-001
+    title: Remote Desktop is enabled
+    severity: MEDIUM
+    category: remote_access
+    description: Remote Desktop is enabled and increases the endpoint attack surface.
+    platforms: [WINDOWS]
+    condition: {field: security.rdp_enabled, operator: equals, value: true}
+    evidence_fields: [security.rdp_enabled]
+    remediation: Disable RDP where unnecessary or restrict it through a managed gateway, host firewall, MFA, and network-level authentication.
+    exposure: 0.7
+
+  - id: LIN-SSH-001
+    title: SSH root login is enabled
+    severity: HIGH
+    category: remote_access
+    description: The SSH service permits direct root authentication.
+    platforms: [LINUX]
+    condition: {field: security.ssh_root_login_enabled, operator: equals, value: true}
+    evidence_fields: [security.ssh_root_login_enabled]
+    remediation: Set PermitRootLogin to no, validate the effective SSH configuration, and use named administrative accounts with sudo.
+    exploitability: 0.8
+    exposure: 0.8
+
+  - id: LIN-SSH-002
+    title: SSH password authentication is enabled
+    severity: MEDIUM
+    category: remote_access
+    description: SSH accepts password authentication instead of requiring managed key or certificate authentication.
+    platforms: [LINUX]
+    condition: {field: security.ssh_password_authentication_enabled, operator: equals, value: true}
+    evidence_fields: [security.ssh_password_authentication_enabled]
+    remediation: Disable SSH password authentication after deploying approved keys or certificates and a tested recovery procedure.
+    exploitability: 0.6
+    exposure: 0.7
+
+  - id: LIN-SSH-003
+    title: SSH permits empty passwords
+    severity: CRITICAL
+    category: remote_access
+    description: The effective SSH configuration permits accounts with empty passwords.
+    platforms: [LINUX]
+    condition: {field: security.ssh_permit_empty_passwords, operator: equals, value: true}
+    evidence_fields: [security.ssh_permit_empty_passwords]
+    remediation: Disable PermitEmptyPasswords immediately, remediate empty account passwords, and review authentication logs.
+    exploitability: 1.0
+    exposure: 1.0
+
+  - id: ACCOUNT-GUEST-001
+    title: Guest account is enabled
+    severity: MEDIUM
+    category: identity
+    description: A local guest account is enabled on the endpoint.
+    condition: {field: security.guest_account_enabled, operator: equals, value: true}
+    evidence_fields: [security.guest_account_enabled]
+    remediation: Disable guest access unless a documented exception requires it and apply least-privilege restrictions.
+    exploitability: 0.5
+
+  - id: ACCOUNT-ADMIN-001
+    title: Excessive local administrator accounts
+    severity: MEDIUM
+    category: privilege_management
+    description: The endpoint has more local administrator accounts than the enterprise baseline permits.
+    condition: {field: security.excessive_administrator_accounts, operator: equals, value: true}
+    evidence_fields: [security.administrator_account_count, security.controls]
+    remediation: Review administrator membership, remove unnecessary accounts, and use just-in-time privileged access.
+    exploitability: 0.5
+
+  - id: ACCOUNT-ADMIN-002
+    title: Unexpected administrator account detected
+    severity: HIGH
+    category: privilege_management
+    description: One or more administrator accounts are not present in the approved local administrator baseline.
+    condition: {field: security.unexpected_administrator_accounts, operator: not_equals, value: []}
+    evidence_fields: [security.unexpected_administrator_accounts]
+    remediation: Validate each unexpected administrator, disable unauthorized accounts, and investigate its creation and use.
+    exploitability: 0.8
+
+  - id: AGENT-EDR-001
+    title: Required endpoint security agent is missing
+    severity: HIGH
+    category: visibility
+    description: The required enterprise endpoint security or Wazuh agent is not installed.
+    condition: {field: security.security_agent_installed, operator: equals, value: false}
+    evidence_fields: [security.security_agent_installed, security.security_agent_names]
+    remediation: Install and enroll the approved endpoint security agent, then confirm policy and telemetry health.
+    compliance_impact: 0.8
+
+  - id: AGENT-EDR-002
+    title: Endpoint security agent is not running
+    severity: HIGH
+    category: visibility
+    description: An installed endpoint security agent is stopped or unhealthy.
+    condition:
+      all:
+        - {field: security.security_agent_installed, operator: equals, value: true}
+        - {field: security.security_agent_running, operator: equals, value: false}
+    evidence_fields: [security.security_agent_installed, security.security_agent_running, security.security_agent_names]
+    remediation: Restore the security agent service and investigate tampering, configuration, resource, or connectivity failures.
+    exploitability: 0.6
+
+  - id: SECURITY-SERVICE-001
+    title: Required security service is disabled
+    severity: HIGH
+    category: endpoint_security
+    description: A platform security service required by policy is disabled.
+    condition: {field: security.security_service_enabled, operator: equals, value: false}
+    evidence_fields: [security.security_service_enabled]
+    remediation: Re-enable the required service with its managed startup policy and investigate unauthorized configuration changes.
+    exploitability: 0.7
+
+  - id: SECURITY-SERVICE-002
+    title: Required security service is stopped
+    severity: HIGH
+    category: endpoint_security
+    description: A required platform security service is enabled but not running.
+    condition:
+      all:
+        - {field: security.security_service_enabled, operator: equals, value: true}
+        - {field: security.security_service_running, operator: equals, value: false}
+    evidence_fields: [security.security_service_enabled, security.security_service_running]
+    remediation: Start the required service, restore automatic startup, and investigate repeated stops or tampering.
+    exploitability: 0.7
+
+  - id: OS-SUPPORT-001
+    title: Unsupported or outdated operating system detected
+    severity: CRITICAL
+    category: patch_management
+    description: The installed operating system release is outdated or outside vendor support.
+    condition: {field: os.supported, operator: equals, value: false}
+    evidence_fields: [os.family, os.name, os.version, os.build, os.supported]
+    remediation: Upgrade or migrate the endpoint to a vendor-supported operating system release using an approved plan.
+    exploitability: 0.9
+    compliance_impact: 1.0
+
+  - id: PATCH-SECURITY-001
+    title: Security updates are pending
+    severity: HIGH
+    category: patch_management
+    description: One or more security updates are pending on the endpoint.
+    condition: {field: security.pending_security_updates_count, operator: greater_than, value: 0}
+    evidence_fields: [security.pending_security_updates_count]
+    remediation: Prioritize and deploy pending security updates according to severity and the enterprise patch SLA.
+    exploitability: 0.8
+
+  - id: PATCH-AUTOUPDATE-001
+    title: Automatic security updates are disabled
+    severity: MEDIUM
+    category: patch_management
+    description: The endpoint is not configured for the approved automatic update workflow.
+    condition: {field: security.automatic_updates_enabled, operator: equals, value: false}
+    evidence_fields: [security.automatic_updates_enabled]
+    remediation: Enable managed automatic updates or enroll the endpoint in the approved patch deployment system.
+    compliance_impact: 0.7
+
+  - id: PATCH-REBOOT-001
+    title: Security maintenance requires a reboot
+    severity: LOW
+    category: patch_management
+    description: The endpoint reports a pending reboot that may prevent completed security updates from taking effect.
+    condition: {field: security.pending_reboot, operator: equals, value: true}
+    evidence_fields: [security.pending_reboot]
+    remediation: Schedule a controlled reboot and verify update completion after the endpoint returns to service.
+
+  - id: NETWORK-TELNET-001
+    title: Telnet listener detected
+    severity: CRITICAL
+    category: network_exposure
+    description: A process is listening on the conventional plaintext Telnet port.
+    condition: {field: listening_ports.port, operator: equals, value: 23}
+    evidence_fields: [listening_ports]
+    remediation: Disable Telnet and replace it with an authenticated, encrypted management protocol restricted by network policy.
+    exploitability: 0.9
+    exposure: 0.9
+
+  - id: NETWORK-RDP-001
+    title: RDP listener is exposed on all interfaces
+    severity: HIGH
+    category: network_exposure
+    description: TCP port 3389 is bound to all IPv4 interfaces.
+    platforms: [WINDOWS]
+    condition:
+      field: listening_ports
+      operator: any_item
+      conditions:
+        - {field: port, operator: equals, value: 3389}
+        - {field: address, operator: equals, value: 0.0.0.0}
+    evidence_fields: [listening_ports]
+    remediation: Bind RDP to an approved management path or restrict access with host firewall, gateway, MFA, and network-level authentication.
+    exploitability: 0.8
+    exposure: 1.0
+
+  - id: NETWORK-SUSPICIOUS-001
+    title: Suspicious listening port detected
+    severity: HIGH
+    category: network_exposure
+    description: Endpoint analysis marked a listening port as suspicious under the approved network baseline.
+    condition:
+      any:
+        - {field: security.suspicious_listening_port_detected, operator: equals, value: true}
+        - {field: listening_ports.suspicious, operator: equals, value: true}
+    evidence_fields: [listening_ports]
+    remediation: Identify the owning process, validate business need and provenance, restrict exposure, and investigate unauthorized listeners.
+    exploitability: 0.8
+    exposure: 0.8
+
+  - id: SERVICE-SUSPICIOUS-001
+    title: Suspicious service detected
+    severity: HIGH
+    category: persistence
+    description: Endpoint analysis marked an installed service as suspicious.
+    condition:
+      any:
+        - {field: security.suspicious_service_detected, operator: equals, value: true}
+        - {field: services.suspicious, operator: equals, value: true}
+    evidence_fields: [services]
+    remediation: Validate the service binary, signer, account, creation time, and configuration; contain and investigate if unauthorized.
+    exploitability: 0.8
+
+  - id: PERSISTENCE-STARTUP-001
+    title: Suspicious startup item detected
+    severity: HIGH
+    category: persistence
+    description: A startup or login persistence item deviates from the approved endpoint baseline.
+    condition:
+      any:
+        - {field: security.suspicious_startup_item_detected, operator: equals, value: true}
+        - {field: persistence.suspicious, operator: equals, value: true}
+    evidence_fields: [persistence]
+    remediation: Validate provenance and business need, isolate unauthorized binaries, and remove persistence only through an approved response workflow.
+    exploitability: 0.8
+
+  - id: PERSISTENCE-TASK-001
+    title: Suspicious scheduled task detected
+    severity: HIGH
+    category: persistence
+    description: A scheduled task or cron item was marked suspicious by endpoint analysis.
+    condition: {field: security.suspicious_scheduled_task_detected, operator: equals, value: true}
+    evidence_fields: [persistence, security.suspicious_scheduled_task_detected]
+    remediation: Review the task owner, trigger, action, binary, and creation history; contain unauthorized activity through incident response.
+    exploitability: 0.8
+
+  - id: VULNERABILITY-CRITICAL-001
+    title: Critical software vulnerability detected
+    severity: CRITICAL
+    category: vulnerability
+    description: An approved vulnerability-analysis tool reported a critical vulnerability in endpoint package or dependency inventory.
+    scan_types: [FULL, VULNERABILITY, ON_DEMAND]
+    condition: {field: vulnerabilities.severity, operator: equals, value: CRITICAL}
+    evidence_fields: [vulnerabilities]
+    remediation: Validate exposure and deploy the fixed package version or an approved mitigation within the critical vulnerability SLA.
+    exploitability: 0.9
+    exposure: 0.7
+
+  - id: VULNERABILITY-HIGH-001
+    title: High-severity software vulnerability detected
+    severity: HIGH
+    category: vulnerability
+    description: An approved vulnerability-analysis tool reported a high-severity vulnerability in endpoint package or dependency inventory.
+    scan_types: [FULL, VULNERABILITY, ON_DEMAND]
+    condition: {field: vulnerabilities.severity, operator: equals, value: HIGH}
+    evidence_fields: [vulnerabilities]
+    remediation: Upgrade to a fixed version or apply an approved mitigation within the high-severity vulnerability SLA.
+    exploitability: 0.7
+
+  - id: VULNERABILITY-MEDIUM-001
+    title: Medium-severity software vulnerability detected
+    severity: MEDIUM
+    category: vulnerability
+    description: An approved vulnerability-analysis tool reported a medium-severity vulnerability in endpoint package or dependency inventory.
+    scan_types: [FULL, VULNERABILITY, ON_DEMAND]
+    condition: {field: vulnerabilities.severity, operator: equals, value: MEDIUM}
+    evidence_fields: [vulnerabilities]
+    remediation: Validate applicability and upgrade to a fixed version or apply an approved mitigation within the standard vulnerability SLA.
+    exploitability: 0.5
+
+  - id: COMPLIANCE-FAIL-001
+    title: Compliance control failed
+    severity: HIGH
+    category: compliance
+    description: At least one evaluated OpenSCAP or endpoint policy control failed.
+    scan_types: [FULL, COMPLIANCE, ON_DEMAND]
+    condition: {field: compliance.status, operator: equals, value: FAIL}
+    evidence_fields: [compliance]
+    remediation: Review the failed control evidence and use its approved remediation under configuration management.
+    compliance_impact: 1.0
+
+  - id: COMPLIANCE-ERROR-001
+    title: Compliance evaluation error reduced assurance
+    severity: MEDIUM
+    category: visibility
+    description: A compliance control could not be evaluated successfully.
+    scan_types: [FULL, COMPLIANCE, ON_DEMAND]
+    condition: {field: compliance.status, operator: equals, value: ERROR}
+    evidence_fields: [compliance]
+    remediation: Correct the content, permissions, or evaluator problem and rerun the compliance scan.
+    compliance_impact: 0.7
+
+  - id: CONFIG-DRIFT-001
+    title: Endpoint configuration drift detected
+    severity: MEDIUM
+    category: configuration
+    description: Security configuration differs from the last approved baseline.
+    condition: {field: security.configuration_drift, operator: equals, value: true}
+    evidence_fields: [security.configuration_drift]
+    remediation: Review the differential evidence, authorize legitimate change, and restore unintended drift through configuration management.
+    compliance_impact: 0.7
+
+  - id: SCAN-FRESHNESS-001
+    title: Endpoint has not been scanned recently
+    severity: MEDIUM
+    category: visibility
+    description: The recorded time since the prior successful endpoint scan exceeds the locally configured freshness threshold.
+    condition: {field: security.scan_stale, operator: equals, value: true}
+    evidence_fields: [security.scan_age_days, security.scan_stale]
+    remediation: Restore endpoint connectivity or scheduling health and complete a current authorized scan.
+    exposure: 0.5
+
+  - id: COLLECTOR-FAILED-001
+    title: Collector failure reduced endpoint visibility
+    severity: MEDIUM
+    category: visibility
+    description: At least one required collector failed during the scan.
+    condition: {field: collectors.*.status, operator: equals, value: FAILED}
+    evidence_fields: [collectors]
+    remediation: Review the bounded collector error, permissions, and tool health, then rerun the affected collector.
+    compliance_impact: 0.6
+
+  - id: COLLECTOR-TIMEOUT-001
+    title: Collector timeout reduced endpoint visibility
+    severity: MEDIUM
+    category: visibility
+    description: At least one collector exceeded its configured execution timeout.
+    condition: {field: collectors.*.status, operator: equals, value: TIMEOUT}
+    evidence_fields: [collectors]
+    remediation: Investigate endpoint resource pressure or tool behavior and adjust only locally approved bounded limits before retrying.
+    compliance_impact: 0.5
+
+  - id: TOOL-UNAVAILABLE-001
+    title: Required collection tool is unavailable
+    severity: HIGH
+    category: visibility
+    description: A requested collection tool was unavailable, materially reducing scan assurance.
+    condition: {field: collectors.*.status, operator: equals, value: UNAVAILABLE}
+    evidence_fields: [collectors]
+    remediation: Install or restore the approved tool build, verify its integrity and permissions, and rerun the scan.
+    compliance_impact: 0.8
+
+  - id: BROWSER-EXTENSION-001
+    title: Risky browser extension detected
+    severity: MEDIUM
+    category: browser_security
+    description: An installed browser extension was classified as risky by the approved extension baseline.
+    condition: {field: browser_extensions.risky, operator: equals, value: true}
+    evidence_fields: [browser_extensions]
+    remediation: Validate the extension publisher and permissions, remove unapproved extensions, and enforce an enterprise allowlist.
+    exploitability: 0.6
+
+  - id: CONFIG-INSECURE-001
+    title: Insecure endpoint security configuration detected
+    severity: HIGH
+    category: configuration
+    description: One or more evaluated security settings match an explicitly insecure configuration baseline.
+    condition: {field: security.insecure_configuration, operator: equals, value: true}
+    evidence_fields: [security.insecure_configuration, security.controls]
+    remediation: Review the supporting control evidence and restore the approved hardened configuration through managed policy.
+    exploitability: 0.7
+
+  - id: MAC-SIP-001
+    title: System Integrity Protection is disabled
+    severity: HIGH
+    category: endpoint_security
+    description: macOS System Integrity Protection is disabled.
+    platforms: [MACOS]
+    condition: {field: security.sip_enabled, operator: equals, value: false}
+    evidence_fields: [security.sip_enabled]
+    remediation: Re-enable System Integrity Protection from macOS Recovery after validating operational compatibility.
+    exploitability: 0.8
+
+  - id: MAC-REMOTELOGIN-001
+    title: macOS Remote Login is enabled
+    severity: MEDIUM
+    category: remote_access
+    description: macOS Remote Login exposes an SSH service on the endpoint.
+    platforms: [MACOS]
+    condition: {field: security.remote_login_enabled, operator: equals, value: true}
+    evidence_fields: [security.remote_login_enabled]
+    remediation: Disable Remote Login where unnecessary or restrict it to approved administrators and management networks.
+    exposure: 0.7
+
+  - id: MAC-SCREENSHARING-001
+    title: macOS Screen Sharing is enabled
+    severity: MEDIUM
+    category: remote_access
+    description: Screen Sharing is enabled and increases the endpoint remote-access surface.
+    platforms: [MACOS]
+    condition: {field: security.screen_sharing_enabled, operator: equals, value: true}
+    evidence_fields: [security.screen_sharing_enabled]
+    remediation: Disable Screen Sharing where unnecessary or restrict access using approved identity and network controls.
+    exposure: 0.7
+
+  - id: LIN-SELINUX-001
+    title: SELinux is disabled on a managed SELinux endpoint
+    severity: HIGH
+    category: mandatory_access_control
+    description: The Linux endpoint explicitly reports SELinux as disabled.
+    platforms: [LINUX]
+    condition: {field: security.selinux_enabled, operator: equals, value: false}
+    evidence_fields: [security.selinux_enabled]
+    remediation: Enable SELinux in enforcing mode using a tested policy appropriate to the managed distribution and workloads.
+    exploitability: 0.6
+    compliance_impact: 0.8
+
+  - id: LIN-APPARMOR-001
+    title: AppArmor is disabled on a managed AppArmor endpoint
+    severity: HIGH
+    category: mandatory_access_control
+    description: The Linux endpoint explicitly reports AppArmor as disabled.
+    platforms: [LINUX]
+    condition: {field: security.apparmor_enabled, operator: equals, value: false}
+    evidence_fields: [security.apparmor_enabled]
+    remediation: Enable AppArmor and place required workload profiles into enforcing mode after compatibility testing.
+    exploitability: 0.6
+    compliance_impact: 0.8
+
+  - id: PASSWORD-POLICY-001
+    title: Local password policy is noncompliant
+    severity: MEDIUM
+    category: identity
+    description: Evaluated local password policy indicators do not meet the enterprise baseline.
+    condition: {field: security.password_policy_compliant, operator: equals, value: false}
+    evidence_fields: [security.password_policy_compliant, security.controls]
+    remediation: Apply the approved password and lockout policy through the platform configuration management mechanism.
+    exploitability: 0.6
+    compliance_impact: 0.8
+
+  - id: LOCKSCREEN-001
+    title: Automatic screen lock is disabled
+    severity: MEDIUM
+    category: physical_security
+    description: The endpoint does not enforce the approved automatic screen-lock control.
+    condition: {field: security.lock_screen_enabled, operator: equals, value: false}
+    evidence_fields: [security.lock_screen_enabled]
+    remediation: Enforce automatic screen locking and reauthentication after the approved inactivity period.
+    compliance_impact: 0.7
+
+  - id: AUDIT-LOGGING-001
+    title: Endpoint audit logging is disabled
+    severity: HIGH
+    category: visibility
+    description: Required operating system security audit logging is disabled.
+    condition: {field: security.audit_logging_enabled, operator: equals, value: false}
+    evidence_fields: [security.audit_logging_enabled]
+    remediation: Enable the approved operating system audit policy and forward protected logs to the enterprise monitoring system.
+    compliance_impact: 0.9
+
+  - id: LOCAL-ADMIN-PASSWORD-001
+    title: Local administrator password is unmanaged
+    severity: HIGH
+    category: credential_hygiene
+    description: The endpoint does not report an approved local administrator password management control.
+    condition: {field: security.local_admin_password_managed, operator: equals, value: false}
+    evidence_fields: [security.local_admin_password_managed]
+    remediation: Enroll the endpoint in the approved unique local administrator password rotation and access-control solution.
+    exploitability: 0.8
+    compliance_impact: 0.8

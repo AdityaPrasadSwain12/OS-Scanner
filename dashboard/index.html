@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f4f6fb">
+  <title>Sentinel Endpoint Security</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <div class="app-frame">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#overview" aria-label="Sentinel Endpoint Security home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>
+          <strong>Sentinel</strong>
+          <small>Endpoint Security</small>
+        </span>
+      </a>
+
+      <nav class="primary-nav" aria-label="Scanner sections">
+        <a class="nav-link active" href="#overview"><span aria-hidden="true">⌂</span>Overview</a>
+        <a class="nav-link" href="#deploy"><span aria-hidden="true">↓</span>Deploy scanner</a>
+        <a class="nav-link" href="#endpoints-section"><span aria-hidden="true">◇</span>Endpoints</a>
+        <a class="nav-link" href="#scans-section"><span aria-hidden="true">◎</span>Scans</a>
+        <a class="nav-link" href="#report-section"><span aria-hidden="true">▤</span>Reports</a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="environment-card">
+          <span class="status-dot" id="api-status-dot" aria-hidden="true"></span>
+          <div>
+            <strong id="api-status-label">Not connected</strong>
+            <small>Local development</small>
+          </div>
+        </div>
+        <p>Endpoint collection stays on the device. Package analysis runs in isolated workers.</p>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="mobile-menu icon-button" id="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+        <div class="page-title">
+          <p class="eyebrow">SECURITY OPERATIONS</p>
+          <h1>Endpoint posture</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="button ghost" id="refresh-all" type="button" disabled>
+            <span aria-hidden="true">↻</span> Refresh
+          </button>
+          <button class="connection-button" id="connection-toggle" type="button" aria-expanded="false" aria-controls="connection-panel">
+            <span class="connection-avatar" aria-hidden="true">LA</span>
+            <span><strong>Local administrator</strong><small id="connection-label">Connect to API</small></span>
+            <span aria-hidden="true">⌄</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="connection-panel" id="connection-panel" hidden>
+        <form id="connection-form">
+          <div>
+            <label for="admin-token">Local administrator token</label>
+            <p>Used only for same-origin API requests and kept in this browser tab.</p>
+          </div>
+          <div class="token-control">
+            <input id="admin-token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the generated admin token" required>
+            <button class="button primary" type="submit">Connect</button>
+            <button class="button subtle" id="disconnect" type="button">Forget token</button>
+          </div>
+        </form>
+      </section>
+
+      <div class="status-banner" id="status-banner" role="status" aria-live="polite">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="status">Connect with the local administrator token to manage scanners.</span>
+        <button id="dismiss-status" class="dismiss" type="button" aria-label="Dismiss status">×</button>
+      </div>
+
+      <main id="main-content">
+        <section id="overview" class="section-block" aria-labelledby="overview-heading">
+          <div class="hero">
+            <div>
+              <span class="section-kicker">Fleet overview</span>
+              <h2 id="overview-heading">Know what is running. Fix what matters.</h2>
+              <p>Deploy a lightweight endpoint agent, collect a live device snapshot, and review normalized security evidence from one place.</p>
+            </div>
+            <button class="button primary large" type="button" data-open-scan disabled>
+              <span aria-hidden="true">▶</span> Start a scan
+            </button>
+          </div>
+
+          <div class="metric-grid" aria-label="Fleet summary">
+            <article class="metric-card accent-blue">
+              <div class="metric-icon" aria-hidden="true">◇</div>
+              <div><span>Enrolled endpoints</span><strong id="metric-endpoints">—</strong><small id="metric-online">Connect to load fleet</small></div>
+            </article>
+            <article class="metric-card accent-violet">
+              <div class="metric-icon" aria-hidden="true">◎</div>
+              <div><span>Scans in progress</span><strong id="metric-running">—</strong><small>Queued, collecting, or analyzing</small></div>
+            </article>
+            <article class="metric-card accent-red">
+              <div class="metric-icon" aria-hidden="true">!</div>
+              <div><span>Critical findings</span><strong id="metric-critical">—</strong><small>From the selected final report</small></div>
+            </article>
+            <article class="metric-card accent-green">
+              <div class="metric-icon" aria-hidden="true">✓</div>
+              <div><span>Completed scans</span><strong id="metric-complete">—</strong><small id="metric-latest">No scan loaded</small></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="deploy" class="section-block" aria-labelledby="deploy-heading">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">Step 1</span>
+              <h2 id="deploy-heading">Deploy the endpoint scanner</h2>
+              <p>Download one package for the target operating system. OSV-Scanner and dep-scan stay in the server workers.</p>
+            </div>
+            <span class="capability-pill">Thin-agent architecture</span>
+          </div>
+
+          <div class="workflow-strip" aria-label="Scanner workflow">
+            <div><span>1</span><strong>Download</strong><small>Choose the OS package</small></div>
+            <i aria-hidden="true">→</i>
+            <div><span>2</span><strong>Install &amp; enroll</strong><small>Run with administrator rights</small></div>
+            <i aria-hidden="true">→</i>
+            <div><span>3</span><strong>Device appears</strong><small>Agent checks in securely</small></div>
+            <i aria-hidden="true">→</i>
+            <div><span>4</span><strong>Start scan</strong><small>Control it from this dashboard</small></div>
+          </div>
+
+          <div class="installer-grid" id="installer-grid" aria-live="polite">
+            <article class="installer-card" data-platform="WINDOWS">
+              <div class="installer-logo windows-logo" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+              <div class="installer-main">
+                <div class="installer-title"><h3>Windows</h3><span class="recommended">Recommended</span></div>
+                <p>Windows 10/11 and Windows Server · x86-64</p>
+                <dl><div><dt>Package</dt><dd data-installer-format>EXE</dd></div><div><dt>Version</dt><dd data-installer-version>Checking…</dd></div><div><dt>Size</dt><dd data-installer-size>—</dd></div></dl>
+              </div>
+              <button class="button primary installer-download" type="button" data-download-platform="WINDOWS" disabled>Checking package…</button>
+              <p class="artifact-note" data-installer-note>Signed managed installer metadata is being checked.</p>
+            </article>
+
+            <article class="installer-card" data-platform="LINUX">
+              <div class="installer-logo linux-logo" aria-hidden="true">Lx</div>
+              <div class="installer-main">
+                <div class="installer-title"><h3>Linux</h3></div>
+                <p>Ubuntu/Debian enterprise endpoints · x86-64</p>
+                <dl><div><dt>Package</dt><dd data-installer-format>DEB</dd></div><div><dt>Version</dt><dd data-installer-version>Checking…</dd></div><div><dt>Size</dt><dd data-installer-size>—</dd></div></dl>
+              </div>
+              <button class="button secondary installer-download" type="button" data-download-platform="LINUX" disabled>Checking package…</button>
+              <p class="artifact-note" data-installer-note>Package availability is published by the server.</p>
+            </article>
+
+            <article class="installer-card" data-platform="MACOS">
+              <div class="installer-logo mac-logo" aria-hidden="true">●</div>
+              <div class="installer-main">
+                <div class="installer-title"><h3>macOS</h3></div>
+                <p>Managed Intel and Apple silicon endpoints</p>
+                <dl><div><dt>Package</dt><dd data-installer-format>PKG</dd></div><div><dt>Version</dt><dd data-installer-version>Checking…</dd></div><div><dt>Size</dt><dd data-installer-size>—</dd></div></dl>
+              </div>
+              <button class="button secondary installer-download" type="button" data-download-platform="MACOS" disabled>Checking package…</button>
+              <p class="artifact-note" data-installer-note>Package availability is published by the server.</p>
+            </article>
+          </div>
+
+          <div class="trust-note">
+            <span aria-hidden="true">i</span>
+            <p><strong>What is installed?</strong> The endpoint package contains the scanner runtime and local collectors. It does not install OSV-Scanner or dep-scan on the customer device. Production packages must be signed and verified before deployment.</p>
+          </div>
+
+          <section class="enrollment-panel" aria-labelledby="enrollment-heading">
+            <div class="enrollment-copy">
+              <span class="enrollment-icon" aria-hidden="true">⌁</span>
+              <div>
+                <h3 id="enrollment-heading">Enroll this installation</h3>
+                <p>A browser cannot silently install or control software on a device. After launching the downloaded package, use a short-lived, single-use enrollment grant to connect it to this server.</p>
+              </div>
+            </div>
+            <form id="enrollment-form" class="enrollment-form">
+              <label><span>Operating system</span><select id="enrollment-platform"><option value="WINDOWS">Windows</option><option value="LINUX">Linux</option><option value="MACOS">macOS</option></select></label>
+              <label><span>Device label <small>(optional)</small></span><input id="enrollment-label" maxlength="128" placeholder="Example: Finance laptop"></label>
+              <button class="button secondary" id="generate-enrollment" type="submit" disabled>Generate one-time token</button>
+            </form>
+            <div class="enrollment-result" id="enrollment-result" hidden>
+              <div class="one-time-warning"><strong>Copy this token now.</strong><span>It is displayed only in this tab, expires shortly, and can enroll one endpoint.</span><time id="enrollment-expiry"></time></div>
+              <div class="secret-control">
+                <label for="enrollment-token">One-time enrollment token</label>
+                <div><input id="enrollment-token" type="password" readonly autocomplete="off" spellcheck="false"><button class="button subtle" id="toggle-enrollment-token" type="button">Show</button><button class="button secondary" id="copy-enrollment-token" type="button">Copy token</button></div>
+              </div>
+              <div class="developer-command">
+                <div><strong id="enrollment-command-title">Developer portable enrollment</strong><span>The current EXE is a portable test build, not a silent managed installer. Copy and run this setup in an elevated PowerShell window. It verifies the EXE and configuration, then securely prompts you to copy and paste the one-time token before it enrolls and starts the agent.</span></div>
+                <pre id="enrollment-command"></pre>
+                <div class="command-actions"><button class="button subtle" id="copy-enrollment-command" type="button">Copy setup command</button><button class="button subtle" id="clear-enrollment" type="button">Clear grant from page</button></div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section id="endpoints-section" class="section-block data-section" aria-labelledby="endpoints-heading">
+          <div class="section-heading compact">
+            <div>
+              <span class="section-kicker">Step 2</span>
+              <h2 id="endpoints-heading">Enrolled endpoints</h2>
+              <p>Select an online device and request an authorized scan.</p>
+            </div>
+            <div class="section-actions">
+              <label class="search-control">
+                <span class="visually-hidden">Filter endpoints</span>
+                <span aria-hidden="true">⌕</span>
+                <input id="endpoint-filter" type="search" placeholder="Search endpoints" autocomplete="off">
+              </label>
+              <button class="button primary" type="button" data-open-scan disabled>Start scan</button>
+            </div>
+          </div>
+          <div class="table-shell">
+            <table>
+              <thead><tr><th scope="col">Endpoint</th><th scope="col">Operating system</th><th scope="col">Agent</th><th scope="col">Last seen</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+              <tbody id="endpoints"></tbody>
+            </table>
+            <div class="empty-state" id="endpoints-empty">
+              <span aria-hidden="true">◇</span>
+              <h3>No endpoints loaded</h3>
+              <p>Connect to the API, then install and enroll an endpoint scanner.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="scans-section" class="section-block data-section" aria-labelledby="scans-heading">
+          <div class="section-heading compact">
+            <div>
+              <span class="section-kicker">Step 3</span>
+              <h2 id="scans-heading">Scan activity</h2>
+              <p>Agent collection and server-side analysis progress update automatically.</p>
+            </div>
+            <div class="section-actions">
+              <select id="scan-filter" aria-label="Filter scans by state">
+                <option value="ALL">All states</option>
+                <option value="ACTIVE">In progress</option>
+                <option value="COMPLETE">Complete</option>
+                <option value="FAILED">Failed or partial</option>
+              </select>
+              <button class="button ghost" id="refresh-scans" type="button" disabled>Refresh</button>
+            </div>
+          </div>
+          <div class="table-shell">
+            <table>
+              <thead><tr><th scope="col">Scan</th><th scope="col">Endpoint</th><th scope="col">Profile</th><th scope="col">State</th><th scope="col">Requested</th><th scope="col">Report</th></tr></thead>
+              <tbody id="scans"></tbody>
+            </table>
+            <div class="empty-state" id="scans-empty">
+              <span aria-hidden="true">◎</span>
+              <h3>No scans loaded</h3>
+              <p>Start an authorized scan after an enrolled endpoint comes online.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="report-section" class="section-block report-section" aria-labelledby="report-heading">
+          <div class="report-placeholder" id="report-placeholder">
+            <div class="placeholder-illustration" aria-hidden="true">▤</div>
+            <h2 id="report-heading">Select a completed scan</h2>
+            <p>The normalized findings, coverage, inventory, JSON, and PDF controls will appear here.</p>
+          </div>
+
+          <div id="report-view" hidden>
+            <div class="report-header">
+              <div>
+                <span class="section-kicker">Final normalized report</span>
+                <div class="report-title-line"><h2 id="report-title">Endpoint assessment</h2><span class="status-chip" id="report-status">—</span></div>
+                <p id="report-subtitle">—</p>
+              </div>
+              <div class="report-actions">
+                <button class="button secondary" id="download-json" type="button">Download JSON</button>
+                <button class="button primary" id="download-pdf" type="button">Download PDF</button>
+              </div>
+            </div>
+
+            <div class="severity-grid" aria-label="Finding severity summary">
+              <article><span>Total findings</span><strong id="severity-total">0</strong></article>
+              <article class="severity-critical"><span>Critical</span><strong id="severity-critical">0</strong></article>
+              <article class="severity-high"><span>High</span><strong id="severity-high">0</strong></article>
+              <article class="severity-medium"><span>Medium</span><strong id="severity-medium">0</strong></article>
+              <article class="severity-low"><span>Low</span><strong id="severity-low">0</strong></article>
+            </div>
+
+            <div class="coverage-card">
+              <div class="coverage-header">
+                <div><span class="coverage-icon" aria-hidden="true">◉</span><div><h3>Collection coverage</h3><p id="coverage-summary">Coverage is calculated from explicit collector status.</p></div></div>
+                <span class="coverage-grade" id="coverage-grade">Unknown</span>
+              </div>
+              <div class="coverage-grid">
+                <div><span>Software</span><strong id="coverage-software">0</strong></div>
+                <div><span>Services</span><strong id="coverage-services">0</strong></div>
+                <div><span>Processes</span><strong id="coverage-processes">0</strong></div>
+                <div><span>Local listeners</span><strong id="coverage-listeners">0</strong></div>
+                <div><span>Missing patches</span><strong id="coverage-patches">0</strong></div>
+                <div><span>Vulnerabilities</span><strong id="coverage-vulns">0</strong></div>
+              </div>
+              <div class="reachability-warning">
+                <strong>Remote reachability: not tested</strong>
+                <span>Local listening sockets are potential exposure evidence. They do not prove that a service is reachable through a firewall, NAT, VPN, proxy, or network ACL.</span>
+              </div>
+              <ul class="coverage-gaps" id="coverage-gaps"></ul>
+            </div>
+
+            <div class="report-tabs" role="tablist" aria-label="Report sections">
+              <button type="button" role="tab" aria-selected="true" aria-controls="report-overview-panel" id="report-overview-tab" data-report-tab="overview">Overview</button>
+              <button type="button" role="tab" aria-selected="false" aria-controls="findings-panel" id="findings-tab" data-report-tab="findings">Findings <span id="findings-tab-count">0</span></button>
+              <button type="button" role="tab" aria-selected="false" aria-controls="inventory-panel" id="inventory-tab" data-report-tab="inventory">Endpoint inventory</button>
+              <button type="button" role="tab" aria-selected="false" aria-controls="raw-json-panel" id="raw-json-tab" data-report-tab="json">Raw JSON</button>
+            </div>
+
+            <div id="report-overview-panel" class="tab-panel" role="tabpanel" aria-labelledby="report-overview-tab">
+              <div class="detail-grid">
+                <article>
+                  <h3>Scan details</h3>
+                  <dl id="scan-details"></dl>
+                </article>
+                <article>
+                  <h3>Endpoint identity</h3>
+                  <dl id="endpoint-details"></dl>
+                </article>
+                <article>
+                  <h3>Analysis tools</h3>
+                  <div class="tool-list" id="tool-list"></div>
+                </article>
+                <article>
+                  <h3>Security posture</h3>
+                  <dl id="security-details"></dl>
+                </article>
+                <article class="integrity-card">
+                  <h3>Integrity and provenance</h3>
+                  <dl id="integrity-details"></dl>
+                </article>
+              </div>
+            </div>
+
+            <div id="findings-panel" class="tab-panel" role="tabpanel" aria-labelledby="findings-tab" hidden>
+              <div class="panel-toolbar">
+                <label class="search-control"><span class="visually-hidden">Search findings</span><span aria-hidden="true">⌕</span><input id="finding-filter" type="search" placeholder="Search title, CVE, component, or remediation"></label>
+                <select id="severity-filter" aria-label="Filter findings by severity"><option value="ALL">All severities</option><option value="CRITICAL">Critical</option><option value="HIGH">High</option><option value="MEDIUM">Medium</option><option value="LOW">Low</option><option value="INFO">Informational</option><option value="UNKNOWN">Unknown</option></select>
+              </div>
+              <div class="table-shell findings-table-shell">
+                <table>
+                  <thead><tr><th scope="col">Severity</th><th scope="col">Finding</th><th scope="col">Source</th><th scope="col">CVSS</th><th scope="col">Affected asset</th><th scope="col">Remediation</th></tr></thead>
+                  <tbody id="findings"></tbody>
+                </table>
+                <div class="empty-state" id="findings-empty"><span aria-hidden="true">✓</span><h3>No observed findings</h3><p>This means no findings were reported by completed collectors. Check coverage before treating this as a clean result.</p></div>
+              </div>
+            </div>
+
+            <div id="inventory-panel" class="tab-panel" role="tabpanel" aria-labelledby="inventory-tab" hidden>
+              <div class="inventory-intro">
+                <div><h3>Point-in-time endpoint inventory</h3><p>Collected locally by the enrolled endpoint agent. Secret values and private-key material are excluded.</p></div>
+                <label class="search-control"><span class="visually-hidden">Filter inventory</span><span aria-hidden="true">⌕</span><input id="inventory-filter" type="search" placeholder="Filter inventory records"></label>
+              </div>
+              <div id="inventory-accordions" class="inventory-accordions"></div>
+            </div>
+
+            <div id="raw-json-panel" class="tab-panel" role="tabpanel" aria-labelledby="raw-json-tab" hidden>
+              <div class="json-toolbar"><p>Canonical report used by this dashboard.</p><button class="button subtle" id="copy-report" type="button">Copy JSON</button></div>
+              <pre id="report-json" tabindex="0"></pre>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <span>Sentinel Endpoint Security · Local integration environment</span>
+        <span>External network reachability is not tested by this scanner.</span>
+      </footer>
+    </div>
+  </div>
+
+  <dialog id="scan-dialog" aria-labelledby="scan-dialog-title">
+    <form id="scan-form" method="dialog">
+      <div class="dialog-header">
+        <div><span class="section-kicker">Authorized operation</span><h2 id="scan-dialog-title">Start endpoint scan</h2><p>The enrolled agent will collect a point-in-time snapshot. Cloud workers will analyze its SBOM.</p></div>
+        <button class="icon-button" id="close-scan-dialog" type="button" aria-label="Close scan dialog">×</button>
+      </div>
+
+      <label for="scan-endpoint">Endpoint</label>
+      <select id="scan-endpoint" required></select>
+
+      <fieldset>
+        <legend>Scan profile</legend>
+        <div class="profile-options">
+          <label class="profile-option"><input type="radio" name="scan-type" value="QUICK" checked><span><strong>Quick</strong><small>Core inventory and security posture</small></span></label>
+          <label class="profile-option"><input type="radio" name="scan-type" value="FULL"><span><strong>Full</strong><small>Broad inventory, persistence, updates, and SBOM</small></span></label>
+        </div>
+      </fieldset>
+
+      <label for="authorization-reference">Authorization reference</label>
+      <input id="authorization-reference" maxlength="512" placeholder="Example: CHG-2026-0042 or customer approval ID" required>
+      <small class="field-help">Use a change ticket, assessment engagement, or written approval reference. Do not enter credentials.</small>
+
+      <label for="scan-purpose">Purpose</label>
+      <textarea id="scan-purpose" maxlength="1024" rows="3" placeholder="Example: Scheduled endpoint security assessment"></textarea>
+
+      <label class="authorization-check"><input id="authorization-confirmed" type="checkbox" required><span>I confirm that I am authorized to scan this endpoint and collect the described security evidence.</span></label>
+
+      <div class="dialog-actions">
+        <button class="button subtle" id="cancel-scan" type="button">Cancel</button>
+        <button class="button primary" id="submit-scan" type="submit">Start authorized scan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

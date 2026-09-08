@@ -1,0 +1,10 @@
+Package: endpoint-security-scanner
+Version: @VERSION@
+Section: admin
+Priority: optional
+Architecture: @ARCHITECTURE@
+Maintainer: Endpoint Security Scanner Engineering
+Depends: adduser, systemd, util-linux
+Description: Enterprise endpoint inventory and security posture scanner
+ Installs a standalone managed endpoint agent and a pinned osquery binary.
+ Vulnerability analysis is offloaded to the authenticated cloud service.

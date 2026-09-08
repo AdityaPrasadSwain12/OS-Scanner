@@ -1,0 +1,39 @@
+#!/bin/sh
+set -eu
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo 'Run endpoint-scanner-enroll as root.' >&2
+    exit 2
+fi
+config_file=${ENDPOINT_SCANNER_CONFIG:-/etc/endpoint-scanner/config.yaml}
+if [ ! -f "$config_file" ]; then
+    echo 'Scanner configuration is missing.' >&2
+    exit 2
+fi
+if [ -z "${SCANNER_ENROLLMENT_TOKEN:-}" ]; then
+    echo 'SCANNER_ENROLLMENT_TOKEN is not set.' >&2
+    exit 2
+fi
+
+token_file=$(mktemp /run/endpoint-scanner-enrollment.XXXXXXXX)
+cleanup() {
+    rm -f -- "$token_file"
+    unset SCANNER_ENROLLMENT_TOKEN
+}
+trap cleanup EXIT HUP INT TERM
+printf '%s' "$SCANNER_ENROLLMENT_TOKEN" > "$token_file"
+unset SCANNER_ENROLLMENT_TOKEN
+chown endpoint-scanner:endpoint-scanner "$token_file"
+chmod 0600 "$token_file"
+
+uid=$(id -u endpoint-scanner)
+gid=$(id -g endpoint-scanner)
+env -i PATH=/usr/sbin:/usr/bin:/sbin:/bin /usr/bin/setpriv \
+    --reuid="$uid" --regid="$gid" --init-groups \
+    /opt/endpoint-scanner/libexec/enroll-worker "$token_file" "$config_file"
+
+install -o endpoint-scanner -g endpoint-scanner -m 0600 /dev/null \
+    /var/lib/endpoint-scanner/enrolled
+systemctl enable endpoint-scanner.service
+systemctl start endpoint-scanner.service
+echo '{"status":"ENROLLED_AND_STARTED","service":"endpoint-scanner.service"}'

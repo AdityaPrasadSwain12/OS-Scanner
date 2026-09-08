@@ -1,0 +1,3 @@
+# OWASP dep-scan is deliberately isolated in the analysis-worker image.
+owasp-depscan==6.3.0
+

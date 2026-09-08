@@ -1,0 +1,25 @@
+{
+  "endpoint": {
+    "endpoint_id": "endpoint-macos-001",
+    "hostname": "mac-design-01",
+    "os_family": "MACOS",
+    "asset_criticality": 0.6
+  },
+  "operating_system": {
+    "family": "MACOS",
+    "name": "macOS",
+    "version": "15.1",
+    "architecture": "arm64",
+    "supported": true
+  },
+  "security": {
+    "firewall_enabled": true,
+    "disk_encryption_enabled": true,
+    "secure_boot_enabled": true,
+    "sip_enabled": true,
+    "automatic_updates_enabled": true,
+    "remote_login_enabled": false,
+    "screen_sharing_enabled": false
+  }
+}
+

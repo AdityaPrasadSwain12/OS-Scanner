@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "target": "linux-arm64",
+  "artifacts": [
+    {
+      "component": "osquery",
+      "version": "PIN_APPROVED_VERSION",
+      "source_path": "linux-arm64/osquery/osqueryi",
+      "install_name": "osqueryi",
+      "sha256": "PIN_APPROVED_64_CHARACTER_SHA256",
+      "size_bytes": 1,
+      "license_path": "licenses/osquery.txt",
+      "license_sha256": "PIN_APPROVED_64_CHARACTER_SHA256",
+      "license_size_bytes": 1,
+      "license_expression": "Apache-2.0"
+    }
+  ]
+}
