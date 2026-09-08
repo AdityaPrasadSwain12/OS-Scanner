@@ -21,9 +21,15 @@ htmlcov/
 *.sqlite3-wal
 *.log
 .env
+.env.*
+!.env.example
+!**/.env.example
 cloud/.env.local
 cloud/.e2e-agent/
 credentials.json
+*.key
+*.p12
+*.pfx
 reports/
 deep-scan-report*.json
 %ProgramData%/

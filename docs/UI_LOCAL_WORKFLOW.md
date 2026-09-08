@@ -59,7 +59,8 @@ obtain elevation.
 Open PowerShell in the repository, then run these checks serially:
 
 ```powershell
-Set-Location 'C:\Users\adity\OneDrive\Desktop\OS_Scanner'
+$ProjectRoot = 'C:\path\to\OS-Scanner'
+Set-Location -LiteralPath $ProjectRoot
 $repo = (Get-Location).Path
 
 docker version
@@ -324,7 +325,8 @@ This is an optional independent check of what the UI is displaying. Run it in an
 window after starting a scan:
 
 ```powershell
-Set-Location 'C:\Users\adity\OneDrive\Desktop\OS_Scanner'
+$ProjectRoot = 'C:\path\to\OS-Scanner'
+Set-Location -LiteralPath $ProjectRoot
 
 $adminLine = Get-Content -LiteralPath .\cloud\.env.local |
   Where-Object { $_ -like 'CLOUD_ADMIN_TOKEN=*' } |
